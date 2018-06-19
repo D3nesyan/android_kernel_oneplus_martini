@@ -16,7 +16,7 @@
 
 OBJCOPYFLAGS_Image :=-O binary -R .note -R .note.gnu.build-id -R .comment -S
 
-targets := Image Image.bz2 Image.gz Image.lz4 Image.lzma Image.lzo
+targets := Image Image.bz2 Image.gz Image.lz4 Image.lzma Image.lzo dtbo.img
 
 ifeq ($(CONFIG_QCOM_RTIC),y)
 # Add RTIC DTB to the DTB list if RTIC MPGen is enabled
@@ -27,6 +27,8 @@ ifeq ($(CONFIG_QCOM_RTIC),y)
 ifdef RTIC_MPGEN
 DTB_OBJS += rtic_mp.dtb
 endif
+
+DTBO_OBJS := $(shell find $(obj)/dts/ -name \*.dtbo)
 
 rtic_mp.dtb: vmlinux FORCE
 	$(DTC) -O dtb -o rtic_mp.dtb -b 0 $(DTC_FLAGS) rtic_mp.dts
@@ -50,6 +52,9 @@ $(obj)/Image.lzma: $(obj)/Image FORCE
 
 $(obj)/Image.lzo: $(obj)/Image FORCE
 	$(call if_changed,lzo)
+
+$(obj)/dtbo.img: $(DTBO_OBJS) FORCE
+	$(call if_changed,mkdtimg)
 
 install:
 	$(CONFIG_SHELL) $(srctree)/$(src)/install.sh $(KERNELRELEASE) \
